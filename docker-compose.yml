@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: raga_roads
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  artist_service:
+    build:
+      context: .
+      dockerfile: artist_service/Dockerfile
+    ports:
+      - "8001:8001"
+
+  concert_service:
+    build:
+      context: .
+      dockerfile: concert_service/Dockerfile
+    ports:
+      - "8002:8002"
+
+  booking_service:
+    build:
+      context: .
+      dockerfile: booking_service/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - artist_service
+      - concert_service
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: raga_roads
+      DB_USER: postgres
+      DB_PASSWORD: admin123
+      ARTIST_SERVICE_URL: http://artist_service:8001
+      CONCERT_SERVICE_URL: http://concert_service:8002
+
+volumes:
+  pgdata:
